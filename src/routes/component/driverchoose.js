@@ -46,7 +46,6 @@ import url from "../../url";
         }
         else
         {
-            
             fetch(`http://${url}/license?drive=${id}`)
             .then(response =>response.json())
             .then(data => {

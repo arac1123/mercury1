@@ -133,7 +133,7 @@ app.get('/violation', (req, res) => {
 
 app.post('/recordadd',(req,res)=>{
     const {data}=req.body;
-    connection.query(`INSERT INTO record(rTime, Number, Duration,Driver) VALUES ('${data.rTime}','${data.Number}',,'${data.Duration}','NULL')`,
+    connection.query(`INSERT INTO record (rTime, Number, Duration, Driver) VALUES ('${data.rTime}', '${data.Number}', '00:00:00', '${data.Driver}')`,
     (error,result)=>{
         if(error)
         console.log(error);
@@ -161,8 +161,8 @@ app.put('/driverupd',(req,res)=>{
 app.put(`/recordupd`,(req,res)=>{
     const Duration=req.body.Duration;
     const rTime =req.body.rTime;
-    const number= req.body.number;
-    connection.query(`UPDATE record SET Duration='${Duration}' WHERE rtime='${rTime}' and Number='${number}'`,(error,results)=>{
+    const Number= req.body.Number;
+    connection.query(`UPDATE record SET Duration='${Duration}' WHERE rTime='${rTime}' and Number='${Number}'`,(error,results)=>{
         if (error) {
             console.log(error);
             res.status(500).send('Failed to update data.');

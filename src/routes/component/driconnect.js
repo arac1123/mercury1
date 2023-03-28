@@ -6,9 +6,7 @@ import {vie,text,gra} from "../../Allstyles";
 import url from '../../url';
 
 class Driconnect extends Component{
-          const start = this.state.datetime;
 
-      start.setHours(this.state.datetime.getHours()+8)
     state={
         datetime:'----,--,--,--:--:--',
         sid:"開始",
@@ -16,9 +14,11 @@ class Driconnect extends Component{
         started:false,
 
     }
+
+    // update駕駛時間
     recordupdate=()=>{
       const start = this.state.datetime;
-      start.setHours(this.state.datetime.getHours()+8)
+      start.setHours(this.state.datetime.getHours()+8);
       fetch(`http://${url}/recordupd`,{
         method: 'PUT',
         headers: {
@@ -27,8 +27,8 @@ class Driconnect extends Component{
         },
         body:JSON.stringify({
           Duration:new Date(this.state.sec * 1000).toISOString().substr(11, 8),
-          rTime = start,
-          number:this.props.license,
+          rTime : start.toISOString(),
+          Number:this.props.license,
 
         })
       }).then(response => response.json())
@@ -37,6 +37,7 @@ class Driconnect extends Component{
          })
   }
 
+    // 更改車牌狀態
     situationupdate=(situ)=>{
         fetch(`http://${url}/driverupd`,{
           method: 'PUT',
@@ -54,27 +55,29 @@ class Driconnect extends Component{
            })
     }
 
+    // insert 紀錄
     recordadd=()=>{
-      const start = this.state.datetime;
+      const start1 = this.state.datetime;
+      start1.setHours(this.state.datetime.getHours()+8)
 
-      start.setHours(this.state.datetime.getHours()+8)
       fetch(`http://${url}/recordadd`,{
         method:'POST',
             headers:{
+                Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
             body:JSON.stringify({
                 data:{
-                    rTime:start,
+                    rTime:start1.toISOString(),
                     Number:this.props.license,
-                    Driver:this.props.Driver
+                    Driver:this.props.Driver,
                 },
             }),
         
         })
       }
 
-
+    // 開始計時
     handleStart = () => {
         this.setState({ started: true });
         this.interval = setInterval(() => {
@@ -84,6 +87,7 @@ class Driconnect extends Component{
 
       };
     
+      // 結束計時
       handleStop = () => {
         clearInterval(this.interval);
         this.setState({ started: false});
@@ -120,8 +124,7 @@ class Driconnect extends Component{
                 onPress={()=>{
                     if(this.state.sid=="開始"){
                         this.setState({datetime:new Date()});
-                        this.setState({sid:"結束"});
-                        this.handleStart();
+                        this.setState({sid:"結束"},()=>{this.handleStart()});
                         this.situationupdate("駕駛中");
 
                     }
@@ -133,7 +136,7 @@ class Driconnect extends Component{
                 >
                     <Text>{this.state.sid}</Text>
                 </TouchableOpacity>
-                <Button title={"test"} onPress={()=>{console.log(this.state.datetime.getHours()+8)}}/>
+                <Button title={"test"} onPress={()=>{console.log(this.props.license),console.log(this.props.Driver),console.log(this.state.datetime)}}/>
                 </View>
             </SafeAreaView>
         )

@@ -6,7 +6,6 @@ import { FlatList, TextInput } from 'react-native-gesture-handler';
 import url from '../../url';
 import  DateTimePicker  from '@react-native-community/datetimepicker';
 
-
 class Recordchoose extends Component{
 state={
     netdata:[],
@@ -21,7 +20,17 @@ saverec=(data)=>{
         type:"record/Post_record",
         payload:data,
         callback:()=>{
+        }
+    });
+}
+
+saveduration=(data)=>{
+    this.props.dispatch({
+        type:"record/Post_duration",
+        payload:data,
+        callback:()=>{
             this.props.navigation.navigate("Violation");
+
         }
     });
 }
@@ -74,7 +83,7 @@ componentDidMount(){
                  renderItem={({item})=>
                     <TouchableOpacity
                     style={gra.licchoose}
-                    onPress={()=>{this.saverec(item.datetime)}}
+                    onPress={()=>{this.saverec(item.datetime,()=>{this.saveduration(item.Duration)})}}
                     >
                         <Text style={text.licchoose}>{item.date} </Text>
                         <Text style={text.licchoose}>{item.time} </Text>
@@ -85,7 +94,7 @@ componentDidMount(){
             </View>
            
                 
-                <Modal visible={this.state.modal} transparent={true} animationType="slide">
+                {/* <Modal visible={this.state.modal} transparent={true} animationType="slide">
                 <View  style={{backgroundColor:'white',position:'absolute',width:'100%',justifyContent:'flex-end',bottom:0}}>
                     <View style={{flexDirection: 'row', justifyContent: 'flex-end',marginRight:15,marginTop:5}}>
                         <Button  title='確定' onPress={()=>{this.setState({modal:false})}} ></Button>
@@ -98,7 +107,7 @@ componentDidMount(){
                     onDateChange={()=>{console.log("123")}}
                     />
                 </View>
-                </Modal>
+                </Modal> */}
                 
                     
                 <View style={vie.recbottom}></View>

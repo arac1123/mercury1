@@ -6,12 +6,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FlatList } from "react-native-gesture-handler";
 import url from "../../url";
 import { Button, Text, View } from "react-native";
-
+const endt= new Date();
 
 class Violation extends Component{
 
     state={
         netdata:[],
+        data:[],
         yawn:0,
         wink:0,
         distrack:0,
@@ -24,35 +25,40 @@ class Violation extends Component{
         fetch(`http://${url}/violation?record=${this.props.record}&license=${this.props.license}`)
         .then(response => response.json())
           .then(netdata => {
-            this.setState({ netdata: netdata },()=>{this.eventcount()});
+            this.setState({data:netdata},{ netdata: netdata },()=>{this.eventcount()});
             console.log(netdata);
 
           })
            }
 
+
+
+    countendtime = ()=>{
+        endt = new Date(this.props.record.gettime()+this.props.duration.gettime());
+    }
     eventcount=()=>{
-        const con1 = this.state.netdata.reduce((acc,item)=>{
+        const con1 = this.state.data.reduce((acc,item)=>{
             if(item.Event==="打哈欠"){
             return acc+1;
             }else{
                 return acc;
             }
         },0);
-        const con2 = this.state.netdata.reduce((acc,item)=>{
+        const con2 = this.state.data.reduce((acc,item)=>{
             if(item.Event==="眨眼頻率過高"){
             return acc+1;
             }else{
                 return acc;
             }
         },0);
-        const con3 = this.state.netdata.reduce((acc,item)=>{
+        const con3 = this.state.data.reduce((acc,item)=>{
             if(item.Event==="駕駛東張西望"){
             return acc+1;
             }else{
                 return acc;
             }
         },0);
-        const con4 = this.state.netdata.reduce((acc,item)=>{
+        const con4 = this.state.data.reduce((acc,item)=>{
             if(item.Event==="駕駛閉眼"){
             return acc+1;
             }else{
@@ -92,6 +98,7 @@ class Violation extends Component{
 const mapStateToProps = state=>{
     return{
         record:state.record.list,
+        duration:state.record.duration,
         license:state.license.list,
 
     }
