@@ -257,6 +257,15 @@ import { StyleSheet } from 'react-native'
             borderRadius: 10,
             
         },
+        viochoose:{
+            width:200,
+            height:40,
+            backgroundColor:"rgb(124,124,124)",
+            alignItems:"center",
+            justifyContent:"center",
+            borderColor:"white",
+            borderWidth:1.5,
+        },
      })
      
 export{text,vie,gra}

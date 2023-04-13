@@ -33,6 +33,8 @@
     "react-native-datepicker": "^1.7.2",
     "react-native-exit-app": "^1.1.0",
     "react-native-gesture-handler": "^2.9.0",
+    "react-native-linear-gradient": "^2.6.2",
+    "react-native-orientation": "^3.1.3",
     "react-native-randombytes": "^3.6.1",
     "react-native-reanimated": "~2.14.4",
     "react-native-redash": "^18.1.0",
@@ -42,7 +44,8 @@
     "react-native-web": "^0.18.12",
     "react-redux": "^8.0.5",
     "redux": "^4.2.1",
-    "redux-saga": "^1.2.2"
+    "redux-saga": "^1.2.2",
+    "expo-linear-gradient": "~12.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

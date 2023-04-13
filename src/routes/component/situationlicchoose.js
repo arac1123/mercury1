@@ -12,6 +12,7 @@ class Situationlicchoose extends Component {
         
     }
 
+    //紀錄該車牌於model
     savelic=(data)=>{
         this.props.dispatch({
             type:"license/Post_license",
@@ -22,6 +23,7 @@ class Situationlicchoose extends Component {
         });
     }
 
+    //查詢所屬車牌
     search=(id)=>{
         fetch(`http://${url}/memberlicense?number=${id}`)
         .then(response=>response.json())
@@ -30,6 +32,7 @@ class Situationlicchoose extends Component {
         });
     }
 
+    
     componentDidMount(){
         this.search(this.props.member.CID);
         

@@ -22,6 +22,7 @@ import Recordchoose from './routes/component/recordchoose';
 import managerownmodel from './models/managerownmodel';
 import recordmodel from './models/recordmodel';
 import violationRoute from './routes/component/violation';
+import PasswordchangeRoute from "./routes/component/passwordchange";
 const Stack = createStackNavigator();
 
 const app = create();
@@ -48,6 +49,7 @@ export default function App() {
           <Stack.Screen name="Situationlicchoose" component={Situationlicchoose} options={{headerShown:false}} />
           <Stack.Screen name="Recordchoose" component={Recordchoose} options={{headerShown:false}}/>
           <Stack.Screen name="Violation" component={violationRoute} options={{headerShown:false}}/>
+          <Stack.Screen name="Passwordchange" component={PasswordchangeRoute} options={{headerShown:false}}/>
 
         </Stack.Navigator>
 

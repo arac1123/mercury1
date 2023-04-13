@@ -10,7 +10,7 @@ class Licenseadd extends Component{
         number:'',
     }
 
-
+    //新增車牌
     licadd=()=>{
         fetch(`http://${url}/licenseadd`,{
             method:'POST',

@@ -1,3 +1,4 @@
+import { NavigationHelpersContext } from '@react-navigation/native';
 import { randomUUID } from 'expo-crypto';
 import React, { Component, useState } from 'react';
 import { Alert, Button, SafeAreaView, TouchableOpacity,Text, View } from "react-native";
@@ -12,13 +13,15 @@ class Driconnect extends Component{
         sid:"開始",
         sec:0,
         started:false,
+        text:[],
 
     }
 
     // update駕駛時間
     recordupdate=()=>{
-      const start = this.state.datetime;
-      start.setHours(this.state.datetime.getHours()+8);
+      const time = new Date(`1970-01-01T08:00:00.000Z`);
+      const starttime = new Date(this.state.datetime.getTime()+ time.getTime()-new Date(0).getTime());
+      const ts =new Date(this.state.sec * 1000).toISOString().substr(11, 8);
       fetch(`http://${url}/recordupd`,{
         method: 'PUT',
         headers: {
@@ -27,14 +30,11 @@ class Driconnect extends Component{
         },
         body:JSON.stringify({
           Duration:new Date(this.state.sec * 1000).toISOString().substr(11, 8),
-          rTime : start.toISOString(),
+          rTime : starttime.toISOString().slice(0,19),
           Number:this.props.license,
 
         })
-      }).then(response => response.json())
-        .then(data => {
-           console.log(data);
-         })
+      })
   }
 
     // 更改車牌狀態
@@ -49,42 +49,41 @@ class Driconnect extends Component{
             Number:this.props.license,
             situation:situ,
           })
-        }).then(response => response.json())
-          .then(data => {
-             console.log(data);
-           })
+        })
     }
 
     // insert 紀錄
     recordadd=()=>{
-      const start1 = this.state.datetime;
-      start1.setHours(this.state.datetime.getHours()+8)
-
+      const time = new Date(`1970-01-01T08:00:00.000Z`);
+      const starttime = new Date(this.state.datetime.getTime()+ time.getTime()-new Date(0).getTime());
+      console.log(starttime);
       fetch(`http://${url}/recordadd`,{
-        method:'POST',
+            method:'POST',
             headers:{
-                Accept: 'application/json',
+              Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
             body:JSON.stringify({
                 data:{
-                    rTime:start1.toISOString(),
-                    Number:this.props.license,
-                    Driver:this.props.Driver,
+                  rTime:starttime.toISOString(),
+                  Number:this.props.license,
+                  Driver:this.props.Driver,
                 },
             }),
         
-        })
+        });
       }
 
     // 開始計時
     handleStart = () => {
+      
         this.setState({ started: true });
         this.interval = setInterval(() => {
-          this.setState({ sec: this.state.sec + 1 });
+          
+          this.setState({ sec: this.state.sec+1 });
+
         }, 1000);
         this.recordadd();
-
       };
     
       // 結束計時
@@ -123,20 +122,20 @@ class Driconnect extends Component{
                 <TouchableOpacity
                 onPress={()=>{
                     if(this.state.sid=="開始"){
-                        this.setState({datetime:new Date()});
-                        this.setState({sid:"結束"},()=>{this.handleStart()});
+                        this.setState({datetime:new Date(),sid:"結束"},()=>{this.handleStart()});
+                        
                         this.situationupdate("駕駛中");
 
                     }
                     else if(this.state.sid=="結束"){
-                        this.handleStop()
+                        this.handleStop();
                         
                     }
                 }}
                 >
                     <Text>{this.state.sid}</Text>
                 </TouchableOpacity>
-                <Button title={"test"} onPress={()=>{console.log(this.props.license),console.log(this.props.Driver),console.log(this.state.datetime)}}/>
+                <Button title={"test"} onPress={()=>{console.log(this.state.text)}}/>
                 </View>
             </SafeAreaView>
         )

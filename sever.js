@@ -26,6 +26,7 @@ connection.connect(function(error){
 }
 );
 
+//搜尋司機車牌是否正確
 app.get('/license',(req,res)=>{
     const drive= req.query.drive;
     connection.query(`select * from license where number LIKE "${drive}"`,function(error,rows,fields){
@@ -39,6 +40,8 @@ app.get('/license',(req,res)=>{
 
 });
 
+
+//搜尋主管帳密是否正確
 app.get('/member',(req,res)=>{
     const account =req.query.account;
     connection.query(`select * from member where Account like "${account}"`,function(error,rows,fields){
@@ -50,6 +53,8 @@ app.get('/member',(req,res)=>{
     })
 });
 
+
+//搜尋主管所屬車牌
 app.get('/memberlicense',(req,res)=>{
     const number =req.query.number;
     connection.query(`select * from license where CID like "${number}"`,function(error,rows,fields){
@@ -62,6 +67,8 @@ app.get('/memberlicense',(req,res)=>{
     })
 });
 
+
+//刪除所屬車牌
 app.delete('/licensedel',(req,res)=>{
     const number =req.query.number;
     connection.query(`DELETE FROM license WHERE Number='${number}'`,(error,result)=>{
@@ -72,6 +79,8 @@ app.delete('/licensedel',(req,res)=>{
     })
 });
 
+
+//新增車牌
 app.post('/licenseadd',(req,res)=>{
     const {data}=req.body;
     connection.query(`INSERT INTO license(Number, CID) VALUES ('${data.value1}','${data.value2}')`,(error,result)=>{
@@ -84,6 +93,8 @@ app.post('/licenseadd',(req,res)=>{
     })
 });
 
+
+//查詢該車牌的駕駛紀錄
 app.get('/record',(req,res)=>{
     const license=req.query.license;
     connection.query(`Select * from record where number='${license}'`,function(error,rows,fields){
@@ -98,18 +109,25 @@ app.get('/record',(req,res)=>{
                   date: datetime.format('YYYY-MM-DD'),
                   time: datetime.format('HH:mm:ss'),
                   Duration:row.Duration,
+                  Driver:row.Driver,
                 };
               });
-              
+              console.log(rows);
               res.json(data);
 
         }
     })
 });
 
+
+
+//查詢該紀錄的違規紀錄
 app.get('/violation', (req, res) => {
   const record = req.query.record;
   const license = req.query.license;
+  console.log("1");
+  console.log(record);
+  console.log(license);
   connection.query(`SELECT * FROM violation WHERE rtime="${record}" and Number="${license}"`, function(error, rows, fields) {
     if (error) {
       console.log(error);
@@ -125,12 +143,14 @@ app.get('/violation', (req, res) => {
           driver: row.Driver,
         };
       });
-      console.log(data);
+      console.log(rows);
       res.json(data);
     }
   });
 });
 
+
+//新增駕駛紀錄
 app.post('/recordadd',(req,res)=>{
     const {data}=req.body;
     connection.query(`INSERT INTO record (rTime, Number, Duration, Driver) VALUES ('${data.rTime}', '${data.Number}', '00:00:00', '${data.Driver}')`,
@@ -144,6 +164,8 @@ app.post('/recordadd',(req,res)=>{
     })
 });
 
+
+//更新車牌駕駛狀態
 app.put('/driverupd',(req,res)=>{
     const Number=req.body.Number;
     const situation= req.body.situation;
@@ -158,11 +180,13 @@ app.put('/driverupd',(req,res)=>{
     })
 });
 
+//更新駕駛時長
 app.put(`/recordupd`,(req,res)=>{
     const Duration=req.body.Duration;
     const rTime =req.body.rTime;
     const Number= req.body.Number;
-    connection.query(`UPDATE record SET Duration='${Duration}' WHERE rTime='${rTime}' and Number='${Number}'`,(error,results)=>{
+
+    connection.query(`UPDATE record SET Duration = '${Duration}' WHERE record.rTime = '${rTime}' AND record.Number = '${Number}'`,(error,results)=>{
         if (error) {
             console.log(error);
             res.status(500).send('Failed to update data.');
@@ -173,6 +197,20 @@ app.put(`/recordupd`,(req,res)=>{
 })
 
 
+//更新密碼
+app.put('/passwordupd',(req,res)=>{
+    const password=req.body.password;
+    const id= req.body.id;
+    connection.query(`UPDATE member SET Password='${password}' WHERE CID='${id}'`,(error,results)=>{
+        if (error) {
+            console.log(error);
+            res.status(500).send('Failed to update data.');
+          } else {
+            console.log(results);
+            res.send('Data updated successfully.');
+          }
+    })
+});
 
 
 

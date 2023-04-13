@@ -11,7 +11,7 @@ class Lincensechoose extends Component {
         type:'',
         first:'yes',
     }
-
+    //搜尋所屬車牌
     search=(id)=>{
         fetch(`http://${url}/memberlicense?number=${id}`)
         .then(response=>response.json())
@@ -29,7 +29,7 @@ class Lincensechoose extends Component {
         });
 
     }
-
+    //刪除車牌
     licdel=(id)=>{
         fetch(`http://${url}/licensedel?number=${id}`, { method: 'DELETE' });
         this.search(this.props.member.CID);
