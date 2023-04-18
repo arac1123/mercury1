@@ -14,15 +14,14 @@ import DriconnectRoute from "../src/routes/component/driconnect";
 import ManagerficRoute from './routes/component/managerfic';
 import { create } from 'dva-core';
 import managermodel from './models/managermodel';
-import LicensechooseRoute from './routes/component/licensechoose';
 import licensemodel from './models/licensemodel';
-import LicenseaddRoute from './routes/component/licenseadd';
-import Situationlicchoose from './routes/component/situationlicchoose';
 import Recordchoose from './routes/component/recordchoose';
 import managerownmodel from './models/managerownmodel';
 import recordmodel from './models/recordmodel';
 import violationRoute from './routes/component/violation';
 import PasswordchangeRoute from "./routes/component/passwordchange";
+import { useWindowDimensions } from 'react-native';
+
 const Stack = createStackNavigator();
 
 const app = create();
@@ -35,6 +34,8 @@ app.start();
 
 const store=app._store;
 export default function App() {
+    const { height, width } = useWindowDimensions();
+
     return(
       <Provider store={store}>
       <NavigationContainer>
@@ -44,12 +45,9 @@ export default function App() {
           <Stack.Screen name="Managerchoose" component={ManagerchooseRoute} options={{headerShown:false}}/>
           <Stack.Screen name="Driconnect" component={DriconnectRoute} options={{headerShown:false}} />
           <Stack.Screen name="Managerfic" component={ManagerficRoute} options={{headerShown:false}} />
-          <Stack.Screen name="Licensechoose" component={LicensechooseRoute} options={{headerShown:false}} />
-          <Stack.Screen name="Licenseadd" component={LicenseaddRoute} options={{headerShown:false}} />
-          <Stack.Screen name="Situationlicchoose" component={Situationlicchoose} options={{headerShown:false}} />
-          <Stack.Screen name="Recordchoose" component={Recordchoose} options={{headerShown:false}}/>
           <Stack.Screen name="Violation" component={violationRoute} options={{headerShown:false}}/>
           <Stack.Screen name="Passwordchange" component={PasswordchangeRoute} options={{headerShown:false}}/>
+          <Stack.Screen name="Recordchoose" component={Recordchoose} options={{headerShown:false}}/>
 
         </Stack.Navigator>
 

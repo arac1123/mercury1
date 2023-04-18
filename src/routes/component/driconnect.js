@@ -1,21 +1,23 @@
-import { NavigationHelpersContext } from '@react-navigation/native';
-import { randomUUID } from 'expo-crypto';
 import React, { Component, useState } from 'react';
 import { Alert, Button, SafeAreaView, TouchableOpacity,Text, View } from "react-native";
 import { connect } from 'react-redux';
 import {vie,text,gra} from "../../Allstyles";
 import url from '../../url';
+import * as Speech from 'expo-speech';
+import { Audio } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
+import * as Permissions from 'expo-permissions';
 
 class Driconnect extends Component{
+  
+  state={
+    datetime:'----,--,--,--:--:--',
+    sid:"開始",
+    sec:0,
+    started:false,
+    text:[],
+  }
 
-    state={
-        datetime:'----,--,--,--:--:--',
-        sid:"開始",
-        sec:0,
-        started:false,
-        text:[],
-
-    }
 
     // update駕駛時間
     recordupdate=()=>{
@@ -79,13 +81,13 @@ class Driconnect extends Component{
       
         this.setState({ started: true });
         this.interval = setInterval(() => {
-          
           this.setState({ sec: this.state.sec+1 });
-
         }, 1000);
         this.recordadd();
       };
     
+
+
       // 結束計時
       handleStop = () => {
         clearInterval(this.interval);
@@ -111,8 +113,50 @@ class Driconnect extends Component{
           );
       };
 
+
+      componentDidMount() {
+        
+      };
+
+      
+     
+    
+      
     render(){
+
+        //播放音檔
+        async function playSound() {
+          const soundObject = new Audio.Sound();
+          try {
+            await soundObject.loadAsync(require('../../audio/dog1a.mp3'));
+            await soundObject.playAsync();
+          } catch (error) {
+            console.log(error);
+          }
+        }
+        
+        
+        async function handleDeleteButtonPress() {
+          const filePath = "../../audio/dog1a.mp3";
+          const { status } = await FileSystem.requestPermissionsAsync();
+        
+          console.log('权限状态：', status);
+        
+          if (status === 'granted') {
+            try {
+              await FileSystem.deleteAsync(filePath);
+              console.log('文件已成功删除');
+            } catch (error) {
+              console.log('删除文件失败：', error);
+            }
+          } else {
+            console.log('权限被拒绝，无法删除文件');
+          }
+        }
+        
+
         const formattedSec = new Date(this.state.sec * 1000).toISOString().substr(11, 8);
+
         return(
             <SafeAreaView style={vie.container}>
               <View style={{justifyContent:"center",alignItems:"center"}}>
@@ -135,7 +179,10 @@ class Driconnect extends Component{
                 >
                     <Text>{this.state.sid}</Text>
                 </TouchableOpacity>
-                <Button title={"test"} onPress={()=>{console.log(this.state.text)}}/>
+                <Button title={"test1"} onPress={()=>{Speech.speak("你好", { language: 'zh' })}}/>
+                <Button title={"test2"} onPress={()=>{playSound()}}/>
+                <Button title={"test3"} onPress={()=>{handleDeleteButtonPress()}}/>
+
                 </View>
             </SafeAreaView>
         )

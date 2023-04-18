@@ -1,2 +1,2 @@
-var url = "10.51.203.88:3300"
+var url = "10.51.204.195:3300"
 export default url;

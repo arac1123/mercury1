@@ -30,6 +30,9 @@ class Violation extends Component{
         distrack:0,
         closeeye:0,
         title:"違規總次數",
+        choose:true,
+        flat:false,
+        name:["打哈欠","眨眼頻率過高","駕駛東張西望","駕駛閉眼"]
     }
 
     //搜尋sql
@@ -45,12 +48,10 @@ class Violation extends Component{
 
     //點擊時間後顯示該時段違規情形
     buttonclick=(hour) =>{
-        console.log(hour.substring(0,2));
         this.setState({title:hour})
         const res =this.state.netdata.filter((item=>
             item.datetime.substring(11,13)===hour.substring(0,2)))
-            console.log(res);
-        this.setState({data:res},()=>{ this.eventcount()})
+        this.setState({data:res,limitdata:res},()=>{ this.eventcount()})
     }
 
 
@@ -88,7 +89,6 @@ class Violation extends Component{
         this.setState({wink:con2});
         this.setState({distrack:con3});
         this.setState({closeeye:con4});
-        console.log(con1,con2,con3,con4);
 
     }
     
@@ -99,12 +99,10 @@ class Violation extends Component{
         const timeset = new Date(this.props.record.datetime);
         const starttime =new Date(timeset.getTime()+time.getTime()-new Date(0).getTime());
         const endtime = new Date(timeset.getTime() + duration.getTime()-new Date(0).getTime()+time.getTime());    
-        console.log(starttime);
-        console.log(endtime);
+        
         const firsthour = starttime.toISOString().substring(11,13);
         const endhour = endtime.toISOString().substring(11,13);
         
-        console.log(firsthour,endhour);
         
         for(let i=firsthour;i<25;i++){
             if(i==24)
@@ -149,11 +147,21 @@ class Violation extends Component{
         }
 
     }
+
     componentDidMount(){ 
         this.searchvio();
         this.countduration();
 
     }
+    
+    //把選取的事件顯示在表格上
+    chooseevent=(name)=>{
+        const res =this.state.data.filter((item=>
+            item.Event===name))
+        this.setState({limitdata:res})
+    }
+
+
     render(){
 
         return(
@@ -175,144 +183,146 @@ class Violation extends Component{
 
 
                 <View style={styles.bottomview}>
-                    <View style={{flexDirection:"row",marginTop:20,alignItems:"flex-start",marginLeft:30}}>
-                        <Image source={require("../../image/steering-wheel.png")} style={{height:40,width:40}} />
-                        <Text style={styles.lictitle}>{this.props.license}</Text>
-                    </View>
-                    <Text style={styles.record}>駕駛 : {this.props.record.Driver}</Text>
-                    <Text style={styles.record}>日期 : {this.props.record.date}   {this.props.record.time}</Text>
-                    <View style={{alignItems:"center",justifyContent:"center",marginTop:10}}>
-                        <Text style={{fontSize:22,color:"#DDDDDD",fontWeight:"bold"}}>{this.state.title}</Text>
-                    </View>
-                    <View style={{height:40 ,justifyContent:"center",alignItems:"center"}}>
-                        <FlatList
-                        style={styles.flat}
-                        data={this.state.hour}
-                        showsVerticalScrollIndicator={false}
-                        horizontal={true}
-                        showsHorizontalScrollIndicator={false}
-                        ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+                    {this.state.choose &&
+                    <View>
+                        <View style={{flexDirection:"row",marginTop:20,alignItems:"flex-start",marginLeft:30}}>
+                            <Image source={require("../../image/steering-wheel.png")} style={{height:40,width:40}} />
+                            <Text style={styles.lictitle}>{this.props.license}</Text>
+                        </View>
+                        <Text style={styles.record}>駕駛 : {this.props.record.Driver}</Text>
+                        <Text style={styles.record}>日期 : {this.props.record.date}   {this.props.record.time}</Text>
+                        <View style={{alignItems:"center",justifyContent:"center",marginTop:10}}>
+                            <Text style={{fontSize:22,color:"#DDDDDD",fontWeight:"bold"}}>{this.state.title}</Text>
+                        </View>
+                        <View style={{paddingTop:"2%",justifyContent:"center",alignItems:"center"}}>
+                            <FlatList
+                            data={this.state.hour}
+                            showsVerticalScrollIndicator={false}
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
+                            ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
 
-                        renderItem={({item})=>
+                            renderItem={({item})=>
+                                <TouchableOpacity
+                                style={styles.flatlist}
+                                onPress={()=>{this.buttonclick(item)}}
+                                >
+                                    <Text style={styles.time}>{item} </Text>
+
+
+                                </TouchableOpacity>}
+                            />
+                        </View>
+                        <View style={{justifyContent:"center",alignItems:"center"}}>
+                            <BarChart       
+                            data={{
+                                    labels: ["打哈欠", "眨眼頻率過高", "駕駛東張西望", "駕駛閉眼"],
+                                    datasets: [
+                                    {
+                                        data:[
+                                                this.state.yawn,
+                                                this.state.wink,
+                                                this.state.distrack,
+                                                this.state.closeeye
+                                            ],
+                                    }
+                                    ],                            
+                            }}
+                            style={{marginTop:"2%",paddingBottom:"5%"}}
+                            width={Dimensions.get("window").width} // from react-native
+                            height={250}
+                            fromZero={true}
+                            yAxisTickCount={3}
+                            chartConfig={{
+                            backgroundColor: "#e26a00",
+                            fillShadowGradientOpacity:1,
+                            fillShadowGradientToOpacity:0.34,
+
+                            backgroundGradientFrom: "#1B232A",
+                            backgroundGradientTo: "#5EC5A0",
+                            decimalPlaces: 0, // optional, defaults to 2dp
+                            color: (opacity = 1) => `rgba(0,139,139, ${opacity})`, // 折線顏色
+                            labelColor: (opacity = 1) => `rgba(256,256,256, ${opacity})`, //字體顏色
+                            style: {
+                                borderRadius: 16,
+                                
+                            },
+                            
+                            props: {
+                                title: "Title",
+                                titleFontSize: 24,
+                                titleFontColor: "#000",
+                            },
+                            }}
+                                
+                            />
                             <TouchableOpacity
                             style={styles.flatlist}
-                            onPress={()=>{this.buttonclick(item)}}
+                            onPress={()=>{this.setState({limitdata:this.state.data},()=>{this.setState({choose:false,flat:true})})}}
                             >
-                                <Text style={styles.time}>{item} </Text>
-
-
+                                <Text style={{fontSize:16,color:"#FFFFFF",fontWeight:"bold"}}>詳細情況</Text>
                             </TouchableOpacity>
-                        }
-                    />
-                   </View>
-                    <BarChart       
-                    data={{
-                            labels: ["打哈欠", "眨眼頻率過高", "駕駛東張西望", "駕駛閉眼"],
-                            datasets: [
-                            {
-                                data:[
-                                        this.state.yawn,
-                                        this.state.wink,
-                                        this.state.distrack,
-                                        this.state.closeeye
-                                    ],
+                        </View>
+                    </View>}
+                    {this.state.flat &&
+                        <View style={{justifyContent:"center",alignItems:"center",flex:1}}>
+                            <View style={styles.title}> 
+                                <Text style={styles.titletext}>違規</Text>
+                                <View style={styles.line}/>
+                                <Text style={styles.titletext}>違規時間</Text>
+                            </View>
+                            <FlatList
+                            style={{height:"70%",marginBottom:"4%",width:"77.5%",}}
+                            showsVerticalScrollIndicator={false}
+                            data={this.state.limitdata}
+                            windowSize={10}
+                            renderItem={({item})=>
+                            <View style={styles.flat}>
+                                <View style={styles.list}> 
+                                    <View  style={styles.driver}>
+                                    <Text style={styles.recordtext}>{item.Event}</Text>
+                                    </View>
+                                    <View style={styles.line}/>
+                                    <View  style={styles.driver}>
+                                        <Text style={styles.recordtimetext}>{item.date}</Text>
+                                        <Text style={styles.recordtimetext}>{item.time}</Text>
+                                    </View>
+                                </View>
+                            </View>
                             }
-                            ],                            
-                    }}
-                    style={{marginTop:20}}
-                    width={Dimensions.get("window").width} // from react-native
-                    height={250}
-                    fromZero={true}
-                    yAxisTickCount={3}
-                    chartConfig={{
-                    backgroundColor: "#e26a00",
-                    fillShadowGradientOpacity:1,
-                    fillShadowGradientToOpacity:0.34,
+                            />
+                            <FlatList
+                            data={this.state.name}
 
-                    backgroundGradientFrom: "#1B232A",
-                    backgroundGradientTo: "#5EC5A0",
-                    decimalPlaces: 0, // optional, defaults to 2dp
-                    color: (opacity = 1) => `rgba(0,139,139, ${opacity})`, // 折線顏色
-                    labelColor: (opacity = 1) => `rgba(256,256,256, ${opacity})`, //字體顏色
-                    style: {
-                        borderRadius: 16,
-                        
-                    },
-                    
-                    props: {
-                        title: "Title",
-                        titleFontSize: 24,
-                        titleFontColor: "#000",
-                      },
-                    }}
-                        
-                    />
+                            showsVerticalScrollIndicator={false}
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
+                            ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
 
+                            renderItem={({item})=>
+                                <TouchableOpacity
+                                style={styles.eventlist}
+                                onPress={()=>{this.chooseevent(item)}}
+                                >
+                                    <Text style={styles.time}>{item} </Text>
+
+
+                                </TouchableOpacity>}
+                            />
+                            <TouchableOpacity
+                            style={styles.eventlist}
+                            onPress={()=>{this.setState({flat:false,choose:true})}}
+                            >
+                                <Text style={styles.time}>返回</Text>
+                            </TouchableOpacity>
+                        </View>
+                        
+                    }
                 </View>
             </View>
-
-
-            // <SafeAreaView style={vie.container}>
-            //     <View style={{justifyContent:"center",alignItems:"center"}}>
-            //         <FlatList
-            //         style={{height:"40%"}}
-            //         data={this.state.hour}
-            //         showsVerticalScrollIndicator={false}
-            //         renderItem={({item})=>
-            //         <TouchableOpacity
-            //         style={gra.viochoose}
-            //         onPress={()=>{this.buttonclick(item)}}
-            //         >
-            //             <Text style={text.licchoose}>{item} </Text>
-
-
-            //         </TouchableOpacity>
-            //      }
-            //         />
                     
-            //         <Text style={{fontSize:22}}>{this.state.title}</Text>
-            //         <BarChart       
-            //         data={{
-            //                 labels: ["打哈欠", "眨眼頻率過高", "駕駛東張西望", "駕駛閉眼"],
-            //                 datasets: [
-            //                 {
-            //                     data:[
-            //                             this.state.yawn,
-            //                             this.state.wink,
-            //                             this.state.distrack,
-            //                             this.state.closeeye
-            //                         ],
-            //                 }
-            //                 ],                            
-            //         }}
-            //         width={Dimensions.get("window").width} // from react-native
-            //         height={250}
-            //         fromZero={true}
-            //         yAxisTickCount={3}
-            //         chartConfig={{
-            //         backgroundColor: "#e26a00",
-            //         fillShadowGradientOpacity:1,
-            //         fillShadowGradientToOpacity:0.34,
 
-            //         backgroundGradientFrom: "rgb(255,255,224)",
-            //         backgroundGradientTo: "rgb(255,255,224)",
-            //         decimalPlaces: 0, // optional, defaults to 2dp
-            //         color: (opacity = 1) => `rgba(0,139,139, ${opacity})`, // 折線顏色
-            //         labelColor: (opacity = 1) => `rgba(0,0,0, ${opacity})`, //字體顏色
-            //         style: {
-            //             borderRadius: 16,
-            //         },
-                    
-            //         props: {
-            //             title: "Title",
-            //             titleFontSize: 24,
-            //             titleFontColor: "#000",
-            //           },
-            //         }}
-                        
-            //         />
-            //     </View>
-            // </SafeAreaView>
+            
         )
 
     }
@@ -373,17 +383,89 @@ const styles =StyleSheet.create({
         alignItems:"center",
         borderRadius:20
     },
-    flat:{
-        marginTop:10,
-        width:Dimensions.get("window").width,
-        
-
+    eventlist:{
+        width:150,
+        height:30,
+        backgroundColor:"#319073",
+        justifyContent:"center",
+        alignItems:"center",
+        borderRadius:20
     },
     time:{
         fontSize:20,
         color:"#000000",
         fontWeight:"bold"
-    }
+    },
+    licview:{
+        marginTop:30,
+        marginBottom:30,
+        backgroundColor:"#000000",
+        width:320,
+        height:50,
+        borderRadius:20,
+        justifyContent:"center",
+        alignItems:"center"
+    },
+    lic:{
+        color:"#FFFFFF",
+        fontSize:30,
+        fontWeight:"bold",
+
+    },
+    line:{
+        height: '110%',
+        width: 3,
+        backgroundColor: 'black',
+        marginHorizontal: 10,
+
+    },
+    title:{
+        width:"77.5%",
+        height:"7%",
+        backgroundColor:"#C3C8CD",
+        flexDirection:"row",
+        justifyContent:"center",
+        alignItems:"center",
+        marginTop:"4%"
+    },
+    titletext:{
+        fontSize:20,
+        fontWeight:"bold",
+        width:160,
+        marginLeft:30,
+        marginRight:-70
+    },
+    flat:{
+        backgroundColor:"#DDDDDD",
+        width:320,
+        height:45,
+        justifyContent:"space-evenly",
+        alignItems:"center",
+        borderBottomWidth: 3,
+        borderBottomColor: 'black',
+    },
+    recordtext:{
+        color:"#000000",
+        fontSize:16,
+        fontWeight:"bold",
+        marginRight:-20,
+    },
+    recordtimetext:{
+        color:"#000000",
+        fontSize:16,
+        fontWeight:"bold",
+        marginRight:15
+    },
+    driver:{
+         justifyContent:"center",
+         alignItems:"center",
+         width:160,
+    },
+    list:{
+        flexDirection:"row",
+        alignItems:"center",
+
+    },
     
 })
 
