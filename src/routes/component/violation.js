@@ -1,8 +1,6 @@
 import { Component } from "react";
 import React from "react";
-import {vie,gra,text} from "../../Allstyles";
 import { connect } from "react-redux";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { FlatList } from "react-native-gesture-handler";
 import url from "../../url";
 import { Button, Text, TouchableOpacity, View,Image } from "react-native";
@@ -32,7 +30,8 @@ class Violation extends Component{
         title:"違規總次數",
         choose:true,
         flat:false,
-        name:["打哈欠","眨眼頻率過高","駕駛東張西望","駕駛閉眼"]
+        name:["打哈欠","眨眼頻率過高","駕駛東張西望","駕駛閉眼"],
+        count:[],
     }
 
     //搜尋sql
@@ -54,7 +53,7 @@ class Violation extends Component{
         this.setState({data:res,limitdata:res},()=>{ this.eventcount()})
     }
 
-
+    
     //計算各個次數
     eventcount=()=>{
         const con1 = this.state.data.reduce((acc,item)=>{
@@ -99,7 +98,6 @@ class Violation extends Component{
         const timeset = new Date(this.props.record.datetime);
         const starttime =new Date(timeset.getTime()+time.getTime()-new Date(0).getTime());
         const endtime = new Date(timeset.getTime() + duration.getTime()-new Date(0).getTime()+time.getTime());    
-        
         const firsthour = starttime.toISOString().substring(11,13);
         const endhour = endtime.toISOString().substring(11,13);
         

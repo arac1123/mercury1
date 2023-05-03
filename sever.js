@@ -125,9 +125,6 @@ app.get('/record',(req,res)=>{
 app.get('/violation', (req, res) => {
   const record = req.query.record;
   const license = req.query.license;
-  console.log("1");
-  console.log(record);
-  console.log(license);
   connection.query(`SELECT * FROM violation WHERE rtime="${record}" and Number="${license}"`, function(error, rows, fields) {
     if (error) {
       console.log(error);
@@ -214,3 +211,64 @@ app.put('/passwordupd',(req,res)=>{
 
 
 
+//搜尋有哪些駕駛
+app.get(`/driverselect`,(req,res)=>{
+    const CID =req.query.cid;
+     connection.query(`SELECT Distinct Driver FROM license INNER join record where license.Number=record.Number and license.CID="${CID}";`,function(error,rows,fields){
+        if(error)console.log(error);
+        else{
+            console.log(rows);
+            res.send(rows);
+        }
+    })
+});
+
+//搜尋該駕駛的最近一周駕駛紀錄
+app.get('/driverrecord',(req,res)=>{
+    const name = req.query.name
+    connection.query(`select * FROM record WHERE rTime >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND Driver="${name}"`,function(error,rows,fields){
+        if(error)
+        console.log(error);
+        else{
+            const data = rows.map(row => {
+                const datetime = moment(row.rTime).utcOffset(8 * 60);
+                return {
+                    datetime :datetime.format(),
+                  Number: row.Number,
+                  date: datetime.format('YYYY-MM-DD'),
+                  time: datetime.format('HH:mm:ss'),
+                  Duration:row.Duration,
+                  Driver:row.Driver,
+                };
+              });
+              console.log(rows);
+              res.json(data);
+
+        }
+    });
+});
+
+
+//搜尋駕駛7天內的所有違規事項
+app.get('/driverviocount',(req,res)=>{
+    const name = req.query.name
+    connection.query(`select * from violation INNER JOIN record where record.rTime >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND record.Driver="${name}" and violation.rTime=record.rTime;`,function(error, rows, fields) {
+        if (error) {
+          console.log(error);
+          res.status(500).send('Internal Server Error');
+        } else {
+          const data = rows.map(row => {
+            const datetime = moment.utc(row.vTime).utcOffset(8 * 60);
+            return {
+                datetime:datetime.format(),
+                date: datetime.format('YYYY-MM-DD'),
+              time: datetime.format('HH:mm:ss'),
+              Event: row.Event,
+            };
+          });
+          console.log(rows);
+          res.json(data);
+        }
+      }
+    )
+})

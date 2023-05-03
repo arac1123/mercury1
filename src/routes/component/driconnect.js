@@ -1,22 +1,44 @@
 import React, { Component, useState } from 'react';
-import { Alert, Button, SafeAreaView, TouchableOpacity,Text, View } from "react-native";
+import { Alert, Button, SafeAreaView, TouchableOpacity,Text, View ,Image} from "react-native";
 import { connect } from 'react-redux';
-import {vie,text,gra} from "../../Allstyles";
 import url from '../../url';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
-import * as Permissions from 'expo-permissions';
-
-class Driconnect extends Component{
-  
-  state={
-    datetime:'----,--,--,--:--:--',
-    sid:"開始",
-    sec:0,
-    started:false,
-    text:[],
+import { StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import App from '../component/App';
+//播放音檔
+async function playSound() {
+  const soundObject = new Audio.Sound();
+  try {
+    await soundObject.loadAsync(require('../../audio/dog1a.mp3'));
+    await soundObject.playAsync();
+  } catch (error) {
+    console.log(error);
   }
+}
+class Driconnect extends Component{
+
+
+    state={
+      datetime:'----,--,--,--:--:--',
+      sid:"開始",
+      sec:0,
+      started:false,
+      text:[],
+      viocurrent:[],
+      vionew:[],
+      prescore:100,
+      score:100,
+      drivecount:0,
+      yawn:0,
+      wink:0,
+      distrack:0,
+      closeeye:0,
+      tag:0,
+    }
+  
+ 
 
 
     // update駕駛時間
@@ -54,6 +76,18 @@ class Driconnect extends Component{
         })
     }
 
+
+    //搜尋sql違規紀錄
+    searchvio = () => {
+      const time = new Date(`1970-01-01T08:00:00.000Z`);
+      const starttime = new Date(this.state.datetime.getTime()+ time.getTime()-new Date(0).getTime());
+      console.log(starttime.toISOString().slice(0,19))
+      fetch(`http://${url}/violation?record=${starttime.toISOString().slice(0,19)}&license=${this.props.license}`)
+      .then(response => response.json())
+      .then(response=>{this.setState({vionew:response})})
+    }
+
+
     // insert 紀錄
     recordadd=()=>{
       const time = new Date(`1970-01-01T08:00:00.000Z`);
@@ -78,12 +112,38 @@ class Driconnect extends Component{
 
     // 開始計時
     handleStart = () => {
-      
         this.setState({ started: true });
+        this.recordadd();
+        
+        //計時
         this.interval = setInterval(() => {
           this.setState({ sec: this.state.sec+1 });
         }, 1000);
-        this.recordadd();
+
+        //搜尋資料庫是否有新的違規
+        this.interval =setInterval(()=>{
+          this.searchvio();
+          const difference = this.state.vionew.filter(item => !this.state.viocurrent.some(element => element.datetime === item.datetime));
+          console.log(this.state.drivecount);
+          console.log(difference)
+          if(difference.length===0){
+            
+            //良好駕駛加分            
+            this.setState({drivecount:this.state.drivecount+1});
+            if(this.state.drivecount==12){
+              if(this.state.score>95){
+                this.setState({drivecount:0, score:100});
+              }else{
+                this.setState({drivecount:0, score:this.state.score+5});
+              }
+            }
+          }else{
+            this.setState({drivecount:0,viocurrent:this.state.vionew,prescore:this.state.score});
+
+            this.eventcount(difference);
+
+          }
+        },2000);
       };
     
 
@@ -113,10 +173,50 @@ class Driconnect extends Component{
           );
       };
 
+      //算這趟違規的次數&加扣分
+      eventcount=(data)=>{
 
-      componentDidMount() {
+        const con1 = data.reduce((acc,item)=>{
+            if(item.Event==="打哈欠"){
+              this.setState({score:this.state.score-3, yawn:this.state.yawn+1});
+            
+            }
+        },0);
+
+        const con2 = data.reduce((acc,item)=>{
+            if(item.Event==="眨眼頻率過高"){
+              this.setState({score:this.state.score-4 , wink:this.state.wink+1});
+
+            }
+        },0);
+
+        const con3 =data.reduce((acc,item)=>{
+            if(item.Event==="駕駛東張西望"){
+              this.setState({score:this.state.score-3 , distrack:this.state.distrack+1});
+
+            }
+        },0);
+
+        const con4 =data.reduce((acc,item)=>{
+            if(item.Event==="駕駛閉眼"){
+              this.setState({score:this.state.score-20 , closeeye:this.state.closeeye+1});
+            }
+        },0);
         
-      };
+        if(this.state.score<80 && this.state.prescore>80 ){
+          playSound();
+        }
+        if(this.state.score<60 && this.state.prescore>60){
+          playSound();
+        }
+        if(this.state.score<40 && this.state.prescore>40){
+          playSound();
+        }
+
+    }
+
+
+
 
       
      
@@ -124,49 +224,22 @@ class Driconnect extends Component{
       
     render(){
 
-        //播放音檔
-        async function playSound() {
-          const soundObject = new Audio.Sound();
-          try {
-            await soundObject.loadAsync(require('../../audio/dog1a.mp3'));
-            await soundObject.playAsync();
-          } catch (error) {
-            console.log(error);
-          }
-        }
-        
-        
-        async function handleDeleteButtonPress() {
-          const filePath = "../../audio/dog1a.mp3";
-          const { status } = await FileSystem.requestPermissionsAsync();
-        
-          console.log('权限状态：', status);
-        
-          if (status === 'granted') {
-            try {
-              await FileSystem.deleteAsync(filePath);
-              console.log('文件已成功删除');
-            } catch (error) {
-              console.log('删除文件失败：', error);
-            }
-          } else {
-            console.log('权限被拒绝，无法删除文件');
-          }
-        }
-        
-
         const formattedSec = new Date(this.state.sec * 1000).toISOString().substr(11, 8);
-
         return(
-            <SafeAreaView style={vie.container}>
-              <View style={{justifyContent:"center",alignItems:"center"}}>
-                <Text style={{fontSize:20,fontWeight:"bold"}}>開始時間</Text>
-                <Text  style={{fontSize:20,fontWeight:"bold"}}>{this.state.datetime.toString().substring(0,25)}</Text>
-                <Text  style={{fontSize:20,fontWeight:"bold"}}>{formattedSec}</Text>
-                <TouchableOpacity
+          <View style={styles.container}>
+            {/* <App Driver="John" license="ABC123" tag={1} /> */}
+            <View style={styles.bottomview}>
+              <View style={{flexDirection:'row'}}>
+              <Text style={{fontSize:32,fontWeight:"bold",color:"#DDDDDD",marginTop:"10%"}}>開始時間</Text>
+              </View>
+              <Text  style={{fontSize:28,fontWeight:"bold",color:"#DDDDDD",marginTop:"5%"}}>{this.state.datetime.toString().substring(0,25)}</Text>
+              <Text  style={{fontSize:30,fontWeight:"bold",color:"#DDDDDD",marginTop:"10%"}}>駕駛時間</Text>
+              <Text  style={{fontSize:28,fontWeight:"bold",color:"#DDDDDD",marginTop:"5%"}}>{formattedSec}</Text>
+              <TouchableOpacity
+                style={styles.button}
                 onPress={()=>{
                     if(this.state.sid=="開始"){
-                        this.setState({datetime:new Date(),sid:"結束"},()=>{this.handleStart()});
+                        this.setState({datetime:new Date(),sid:"結束",tag:1},()=>{this.handleStart()});
                         
                         this.situationupdate("駕駛中");
 
@@ -177,14 +250,14 @@ class Driconnect extends Component{
                     }
                 }}
                 >
-                    <Text>{this.state.sid}</Text>
+                    <Text style={{fontSize:20,color:"#FFFFFF",fontWeight:"bold"}}>{this.state.sid}</Text>
                 </TouchableOpacity>
-                <Button title={"test1"} onPress={()=>{Speech.speak("你好", { language: 'zh' })}}/>
-                <Button title={"test2"} onPress={()=>{playSound()}}/>
-                <Button title={"test3"} onPress={()=>{handleDeleteButtonPress()}}/>
+            </View>
+          </View>
 
-                </View>
-            </SafeAreaView>
+
+
+            
         )
     }
     
@@ -193,6 +266,49 @@ const mapStateToProps = state =>{
   return{
       license:state.drive.list.Number,
       Driver:state.drive.name,
+
   }
 }
+const styles = StyleSheet.create({
+  container:{
+    flex:1,
+    backgroundColor:"#1b232a",
+
+  },
+  topview:{
+    flex:0.6,
+    justifyContent:"space-evenly",
+    alignItems:"baseline",
+    flexDirection:"row",
+    borderRadius:30,
+  },
+  bottomview:{
+    flex:2,
+    justifyContent:"flex-start",
+    alignItems:"center",
+    flexDirection:"column",
+    backgroundColor:"#1b232a",
+
+  },
+  toptext:{
+    fontSize:32,
+    fontWeight:"bold",
+    color:"#FFFFFF",
+    marginTop:"25%",
+  },
+  pic:{
+    width:100,
+    height:100,
+    
+  },
+  button:{
+    marginTop:"10%",
+    width:180,
+    height:40,
+    backgroundColor:"#319073",
+    borderRadius:20,
+    justifyContent:"center",
+    alignItems:"center"
+  },
+})
 export default connect(mapStateToProps)(Driconnect)

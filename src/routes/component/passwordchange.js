@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { SafeAreaView, Text, TouchableOpacity, Image, View,Alert } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { connect } from "react-redux";
-import { text,gra,vie } from "../../Allstyles";
 import url from "../../url";
 import { StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';

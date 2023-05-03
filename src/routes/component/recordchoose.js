@@ -1,5 +1,4 @@
 import React, { Component ,useState} from 'react';
-import {vie,text,gra} from '../../Allstyles';
 import { SafeAreaView,View,Text, TouchableOpacity, Image,Modal,Button} from 'react-native';
 import { connect } from 'react-redux';
 import { FlatList, TextInput } from 'react-native-gesture-handler';
@@ -7,6 +6,7 @@ import url from '../../url';
 import  DateTimePicker  from '@react-native-community/datetimepicker';
 import { set } from 'react-native-reanimated';
 import { StyleSheet } from 'react-native';
+const loupegreen =require("../../image/loupegreen.png");
 
 const pagesize= 10;
 
@@ -66,7 +66,29 @@ componentDidMount(){
             <View style={styles.container}>
                 <View style={styles.licview}>
                     <Text style={styles.lic}>{this.props.license}</Text>
+                    <TouchableOpacity 
+                    onPress={()=>{this.setState({modal:true})}}
+                    >
+                        <Image style={{width:45,height:45,marginLeft:5,marginTop:3}}source={require('../../image/calender.png')} resizeMode={'stretch'}></Image>
+                    </TouchableOpacity>
+                    
                 </View>
+                <View style={styles.inputview}>
+                            <Image source={loupegreen} style={{width:28,height:28}}/>
+                            <TextInput 
+                            autoCapitalize="characters"
+                            
+                            placeholder="查詢駕駛"
+                            placeholderTextColor={"#777777"}
+                            style={styles.licsearch}
+                            onChangeText={(type)=>{
+                                const res = this.state.netdata.filter(item=>
+                                    item.Driver.toUpperCase().includes(type.toUpperCase()));
+                                this.setState({data:res});
+                            }
+                            }
+                            />
+                        </View>
                 <View style={styles.title}> 
                     <Text style={styles.titletext}>駕駛</Text>
                     <View style={styles.line}/>
@@ -74,6 +96,7 @@ componentDidMount(){
                 </View>
                 <FlatList
                 showsVerticalScrollIndicator={false}
+                style={{marginBottom:"7%"}}
                 data={this.state.data}
                 windowSize={10}
                 renderItem={({item})=>
@@ -95,7 +118,24 @@ componentDidMount(){
                 
                 }
                 />
+
+                 <Modal visible={this.state.modal} transparent={true} animationType="slide">
+                    <View  style={{backgroundColor:'white',position:'absolute',width:'100%',justifyContent:'flex-end',bottom:0}}>
+                        <View style={{flexDirection: 'row', justifyContent: 'flex-end',marginRight:15,marginTop:5}}>
+                            <Button  title='確定' onPress={()=>{this.setState({modal:false})}} ></Button>
+                        </View>
+                        <DateTimePicker
+                        mode='date'
+                        value={this.state.date}
+                        display="spinner"
+                        is24Hour={false}
+                        onChange={(event,date)=>{this.setState({date:date},()=>{this.recfind()})}}
+                        />
+                    </View>
+                </Modal>
+
             </View>
+            
         )
     }
 
@@ -106,7 +146,18 @@ const styles = StyleSheet.create({
         flex:1,
         backgroundColor:"#1b232a",
         justifyContent:"center",
-        alignItems:"center"
+        alignItems:"center",
+        
+    },
+    inputview:{
+        justifyContent:"center",
+        alignItems:"center",
+        flexDirection:"row",
+        backgroundColor:"#161C22",
+        width:330,
+        height:54,
+        borderRadius:20,
+        marginBottom:"5%"
     },
     licview:{
         marginTop:30,
@@ -116,13 +167,15 @@ const styles = StyleSheet.create({
         height:50,
         borderRadius:20,
         justifyContent:"center",
-        alignItems:"center"
+        alignItems:"center",
+        flexDirection:"row"
     },
     lic:{
         color:"#FFFFFF",
         fontSize:30,
         fontWeight:"bold",
-
+        marginLeft:"25%",
+        paddingRight:"10%"
     },
     line:{
         height: '150%',
@@ -176,6 +229,14 @@ const styles = StyleSheet.create({
         flexDirection:"row",
         alignItems:"center",
 
+    },
+    licsearch:{
+        width:280,
+        height:54,
+        borderRadius:20,
+        fontSize:20,
+        color:"#FFFFFF",
+        paddingLeft:"10%"
     },
 
 })

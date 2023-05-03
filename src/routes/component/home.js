@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { SafeAreaView, View,Text, Alert, Button, TouchableOpacity, Image, BackHandler, Animated } from "react-native";
-import { text,gra,vie } from "../../Allstyles";
 import exitapp from "react-native-exit-app";
 import { connect } from "react-redux";
 import { StyleSheet } from "react-native";
@@ -9,6 +8,9 @@ class Home extends Component {
     
     render(){
         return(
+
+            
+
                 <SafeAreaView style={styles.container}>
                     <Image style={styles.pic} source={require('../../image/logo.png')} resizeMode="stretch"/>
                     <Text style={styles.title}>Mercury</Text>

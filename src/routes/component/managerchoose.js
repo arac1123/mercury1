@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { SafeAreaView, Text,View,Image,TextInput,TouchableOpacity } from "react-native";
-import {vie,gra,text } from "../../Allstyles";
 import url from "../../url";
 import { connect } from "react-redux";
 import { StyleSheet } from "react-native";

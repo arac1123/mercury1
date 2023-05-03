@@ -1,6 +1,5 @@
 import React,{Component} from "react";
-import { text,vie,gra} from "../../Allstyles";
-import { SafeAreaView, View ,Text,TouchableOpacity,Image,TextInput,FlatList, Alert} from "react-native";
+import { SafeAreaView, View ,Text,TouchableOpacity,Image,TextInput,FlatList, Alert, Dimensions} from "react-native";
 import { connect } from "react-redux";
 import { StyleSheet } from "react-native";
 import url from "../../url";
@@ -11,21 +10,30 @@ const add =require("../../image/add.png");
 const addgreen =require("../../image/addgreen.png");
 const trash =require("../../image/trash.png");
 const trashgreen =require("../../image/trashgreen.png");
+const driver =require("../../image/usergray.png");
+const drivergreen =require('../../image/user.png');
+
 
 class Managerfic extends Component {
     state={
         loupeimage:loupegreen,
         loupevisible:true,
+        drivervisible:false,
         trashImage:trash,
         addvisible:false,
         trashvisible:false,
         addimage:add,
+        driverimage:driver,
         netdata:[],
         data:[],
         type:'',
         first:"yes",
         number:'',
+        drivernetdata:[],
+        driverdata:[],
     }
+
+
 
     //搜尋所屬車牌
     search=(id)=>{
@@ -45,6 +53,9 @@ class Managerfic extends Component {
         });
 
     }
+
+
+
 
     //新增車牌
     licadd=()=>{
@@ -66,11 +77,25 @@ class Managerfic extends Component {
     alert(`${this.state.number}已經新增完成`);
     this.search((this.props.member.CID));
 }
+
+
+
+
     //刪除車牌
     licdel=(id)=>{
         fetch(`http://${url}/licensedel?number=${id}`, { method: 'DELETE' });
         this.search(this.props.member.CID);
         
+    }
+
+
+    //搜尋駕駛
+    searchdri=()=>{
+        fetch(`http://${url}/driverselect?cid=${this.props.member.CID}`)
+        .then(response => response.json())
+        .then(response=>{
+            this.setState({drivernetdata:response,driverdata:response})
+        })
     }
 
     //紀錄該車牌於model
@@ -84,8 +109,20 @@ class Managerfic extends Component {
         });
     }
 
+    //紀錄駕駛名字於model
+    savedriveranalyze=(data)=>{
+        this.props.dispatch({
+            type:"driveranalyze/Post_driveranalyze",
+            payload:data,
+            callback:()=>{
+                this.props.navigation.navigate("Driveranalyze");
+            }
+        })
+    }
+
     componentDidMount(){
         this.search((this.props.member.CID));
+        this.searchdri();
     }
     render(){
         return(
@@ -107,20 +144,20 @@ class Managerfic extends Component {
                     <View style={styles.searchview}>
                         <View style={styles.inputview}>
                             <Image source={loupegreen} style={{width:28,height:28}}/>
-                        <TextInput 
-                        autoCapitalize="characters"
-                        keyboardType="ascii-capable"
-                        textContentType="none"
-                        placeholder="查詢車牌"
-                        placeholderTextColor={"#777777"}
-                        style={styles.licsearch}
-                        onChangeText={(type)=>{
-                            const res = this.state.netdata.filter(item=>
-                                item.Number.toUpperCase().includes(type.toUpperCase()));
-                            this.setState({data:res});
-                        }
-                        }
-                        />
+                            <TextInput 
+                            autoCapitalize="characters"
+                            keyboardType="ascii-capable"
+                            textContentType="none"
+                            placeholder="查詢車牌"
+                            placeholderTextColor={"#777777"}
+                            style={styles.licsearch}
+                            onChangeText={(type)=>{
+                                const res = this.state.netdata.filter(item=>
+                                    item.Number.toUpperCase().includes(type.toUpperCase()));
+                                this.setState({data:res});
+                            }
+                            }
+                            />
                         </View>
                         <FlatList
                         data={this.state.data}
@@ -252,6 +289,48 @@ class Managerfic extends Component {
                     </View>
                     </View>
                     }
+
+                    {/* 駕駛查詢介面 */}
+                    {   this.state.drivervisible &&
+                        <View style={{flex:1,backgroundColor:"#1b232a",}}>
+                            <View style={styles.searchview}>
+                                <View style={styles.inputview}>
+                                    <Image source={loupegreen} style={{width:28,height:28}}/>
+                                    <TextInput 
+                                    autoCapitalize="characters"
+                                    placeholder="查詢駕駛"
+                                    placeholderTextColor={"#777777"}
+                                    style={styles.licsearch}
+                                    onChangeText={(type)=>{
+                                        const res = this.state.drivernetdata.filter(item=>
+                                            item.Driver.toUpperCase().includes(type.toUpperCase()));
+                                        this.setState({driverdata:res});
+                                    }
+                                    }
+                                    />
+                                </View>
+                                <FlatList
+                                data={this.state.driverdata}
+                                style={styles.flat}
+                                keyExtractor={(item,index)=>item.Driver.toString()}
+                                showsVerticalScrollIndicator={false}
+                                ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+
+                                renderItem={({item})=>
+                                    <TouchableOpacity
+                                    style={styles.licflat}
+                                    onPress={()=>{this.savedriveranalyze(item.Driver)}}
+                                    >
+                                        <Text 
+                                        style={styles.licnum}>{item.Driver} </Text>
+                                    </TouchableOpacity>
+                                }
+                                
+                                />
+                            </View>
+                        </View>
+
+                    }
                 
 
 
@@ -262,14 +341,14 @@ class Managerfic extends Component {
                     >
                         <TouchableOpacity
                         style={styles.button}
-                        onPress={()=>{this.setState({loupeimage:loupegreen,trashImage:trash,addimage:add,loupevisible:true,trashvisible:false,addvisible:false,})}}
+                        onPress={()=>{this.setState({loupeimage:loupegreen,trashImage:trash,addimage:add,driverimage:driver,loupevisible:true,trashvisible:false,addvisible:false,drivervisible:false})}}
                         >
                             <Image style={styles.bottompic} source={this.state.loupeimage} resizeMode="stretch" />
                             <Text style={styles.bottomtext}>查詢車牌</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                         style={styles.button}
-                        onPress={()=>{this.setState({loupeimage:loupe,trashImage:trash,addimage:addgreen,loupevisible:false,trashvisible:false,addvisible:true})}}
+                        onPress={()=>{this.setState({loupeimage:loupe,trashImage:trash,addimage:addgreen,driverimage:driver,loupevisible:false,trashvisible:false,addvisible:true,drivervisible:false})}}
 
                         >
                             <Image style={styles.bottompic} source={this.state.addimage} resizeMode="stretch" />
@@ -277,11 +356,18 @@ class Managerfic extends Component {
                         </TouchableOpacity>
                         <TouchableOpacity
                         style={styles.button}
-                        onPress={()=>{this.setState({loupeimage:loupe,trashImage:trashgreen,addimage:add,loupevisible:false,trashvisible:true,addvisible:false})}}
+                        onPress={()=>{this.setState({loupeimage:loupe,trashImage:trashgreen,addimage:add,driverimage:driver,loupevisible:false,trashvisible:true,addvisible:false,drivervisible:false})}}
 
                         >
                             <Image style={styles.bottompic} source={this.state.trashImage} resizeMode="stretch" />
                             <Text style={styles.bottomtext}>刪除車牌</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                        style={styles.button}
+                        onPress={()=>{this.setState({loupeimage:loupe,trashImage:trash,addimage:add,driverimage:drivergreen,loupevisible:false,trashvisible:false,addvisible:false,drivervisible:true})}}
+                        >
+                            <Image style={styles.bottompic} source={this.state.driverimage} resizeMode="stretch" />
+                            <Text style={styles.bottomtext}>查詢駕駛</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -323,7 +409,7 @@ const styles =StyleSheet.create({
         alignItems:"center",
         flexDirection:"row",
         backgroundColor:"#212B34",
-        width:340,
+        width:Dimensions.get("window").width,
         height:80,
         borderRadius:20
     },
@@ -367,12 +453,12 @@ const styles =StyleSheet.create({
         paddingTop:25
     },  
     licflat:{
-    backgroundColor:"#319073",
-    width:320,
-    height:60,
-    borderRadius:15,
-    justifyContent:"center",
-    alignItems:"center",
+        backgroundColor:"#319073",
+        width:320,
+        height:60,
+        borderRadius:15,
+        justifyContent:"center",
+        alignItems:"center",
     
     },
     licnum:{

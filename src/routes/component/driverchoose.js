@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { SafeAreaView, Text, TouchableOpacity, Image, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { connect } from "react-redux";
-import { text,gra,vie } from "../../Allstyles";
 import url from "../../url";
 import { StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -184,7 +183,7 @@ const styles= StyleSheet.create({
         width:344,
         height:56,
         borderRadius:20,
-        marginLeft:25,
+        marginLeft:"10%",
         color:"#FFFFFF",
         textAlign:"center"
     },
@@ -193,7 +192,7 @@ const styles= StyleSheet.create({
         fontSize:14,
         fontWeight:"300",
         margin:15,
-        marginLeft:35
+        marginLeft:"10%"
     },
     buttontext:{
         fontSize:20,
@@ -206,7 +205,7 @@ const styles= StyleSheet.create({
         height:54,
         justifyContent:"center",
         alignItems:"center",
-        marginLeft:45,
+        marginLeft:"15%",
         marginTop:20
     },
 })

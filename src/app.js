@@ -21,11 +21,14 @@ import recordmodel from './models/recordmodel';
 import violationRoute from './routes/component/violation';
 import PasswordchangeRoute from "./routes/component/passwordchange";
 import { useWindowDimensions } from 'react-native';
-
+import driveranalyzemodel from '../src/models/driveranalyzemodel';
+import DriveranalyzeRoute from './routes/component/driveranalyze';
+import AppRoute from './routes/component/App';
 const Stack = createStackNavigator();
 
 const app = create();
 app.model(drivermodel);
+app.model(driveranalyzemodel);
 app.model(managermodel);
 app.model(licensemodel);
 app.model(managerownmodel);
@@ -40,8 +43,12 @@ export default function App() {
       <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator>
+          
+          {/* <Stack.Screen name="App" component={AppRoute} options={{headerShown:false}} /> */}
+
           <Stack.Screen name="Home" component={HomeRoute} options={{headerShown:false}} />
           <Stack.Screen name="Driverchoose" component={DriverchooseRoute} options={{headerShown:false}}/>
+          <Stack.Screen name="Driveranalyze" component={DriveranalyzeRoute} options={{headerShown:false}}/>
           <Stack.Screen name="Managerchoose" component={ManagerchooseRoute} options={{headerShown:false}}/>
           <Stack.Screen name="Driconnect" component={DriconnectRoute} options={{headerShown:false}} />
           <Stack.Screen name="Managerfic" component={ManagerficRoute} options={{headerShown:false}} />
