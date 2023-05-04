@@ -162,6 +162,22 @@ app.post('/recordadd',(req,res)=>{
 });
 
 
+//新增違規事項
+app.post(`/violationadd`,(req,res)=>{
+    const {data}=req.body;
+    console.log(data.rTime)
+    connection.query(`INSERT INTO violation(vTime,rTime,Number,Event) VALUES ('${data.vTime}','${data.rTime}','${data.license}','${data.Event}')`,
+    (error,result)=>{
+        if(error)
+        console.log(error);
+        else{
+            res.send('successfully');
+        }
+
+    })
+});
+
+
 //更新車牌駕駛狀態
 app.put('/driverupd',(req,res)=>{
     const Number=req.body.Number;
@@ -252,7 +268,7 @@ app.get('/driverrecord',(req,res)=>{
 //搜尋駕駛7天內的所有違規事項
 app.get('/driverviocount',(req,res)=>{
     const name = req.query.name
-    connection.query(`select * from violation INNER JOIN record where record.rTime >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND record.Driver="${name}" and violation.rTime=record.rTime;`,function(error, rows, fields) {
+    connection.query(`select * from violation INNER JOIN record where record.rTime >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND record.Driver="${name}" and violation.rTime=record.rTime;`,function(error, rows, fields) {
         if (error) {
           console.log(error);
           res.status(500).send('Internal Server Error');

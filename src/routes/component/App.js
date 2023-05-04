@@ -10,13 +10,21 @@ import { Alert } from 'react-native';
 import { Audio } from 'expo-av';
 import url from '../../url';
 
-export const myValueObject = {
-  myValue: 0,
-  setmyValue: () => {}
-};
+// 發送資料到MQTT Broker
+//publish('test', 'Hello, World!');
 
-function App() {
-  
+//播放音檔
+async function playSound() {
+  const soundObject = new Audio.Sound();
+  try {
+    await soundObject.loadAsync(require('../../audio/dog1a.mp3'));
+    await soundObject.playAsync();
+  } catch (error) {
+    console.log(error);
+  }
+}
+function App(props) {
+  const { Driver, license, tag ,recordtime} = props;
   const [hasPermission, setHasPermission] = React.useState();
   const [faceData, setFaceData] = React.useState([]);
   const [eyeStatus, setEyeStatus] = React.useState('');
@@ -87,13 +95,15 @@ function App() {
   // 眨眼次數、打哈欠次數警報
   useEffect(() => {
     if (blinkCount >= 3 && !blinkAlertShown) {
+      playSound();
       Alert.alert("警告", "您眨眼的次數過多，請保持警覺");
-      //recordadd();
+      violationadd("眨眼頻率過高");
       setBlinkCount(0);
       setBlinkAlertShown(true);
     }
 
     if (yawnCount >= 3 && !yawnAlertShown) {
+      violationadd("打哈欠");
       Alert.alert("警告", "您打哈欠的次數過多，請保持警覺");
       setYawnCount(0);
       setYawnAlertShown(true);
@@ -234,40 +244,28 @@ function App() {
   };
 
 
-  // recordadd=()=>{
-  //   const time = new Date(`1970-01-01T08:00:00.000Z`);
-  //   const starttime = new Date(datetime.getTime()+ time.getTime()-new Date(0).getTime());
-  //   console.log(starttime.toISOString());
-  //   fetch(`http://${url}/uploadData`, {
-  //     method: "POST",
-  //     headers: {
-  //       Accept: "application/json",
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       data: {
-  //         value1: starttime.toISOString(),
-  //         value3: "眨眼次數過多",
-  //       },
-  //     }),
-  //   })
-  //     .then((response) => {
-  //       if (!response.ok) {
-  //         throw new Error("Network response was not ok");
-  //       }
-  //       return response.json();
-  //     })
-  //     .catch((error) => {
-  //       console.error("There was a problem with the fetch operation:", error);
-  //     });
-  //   }
+  violationadd=(Event)=>{
+    const time = new Date(`1970-01-01T08:00:00.000Z`);
+    const ttime = new Date();
+    const viotime = new Date(ttime.getTime()+ time.getTime()-new Date(0).getTime());
+    console.log(recordtime .toISOString().slice(0, -5) + 'Z')
+    fetch(`http://${url}/violationadd`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        data: {
+          vTime: viotime.toISOString(),
+          rTime: recordtime.toISOString().slice(0, -5) + 'Z',
+          license:license,
+          Event: Event,
+        },
+      }),
+    });
+    }
 
-    // test=()=>{
-
-    //   fetch(`http://${url}/selectrecord?name=沈柏寧`)
-    //   .then(response=>response.json())
-    //   .then(response=>{console.log(response)});
-    // }
+    
 
 
 
@@ -279,10 +277,8 @@ function App() {
     // console.log(faces[0]["leftMouthPosition"]);
     // console.log(faces[0]["rightMouthPosition"]);
     if (faces.length > 0) {
-      setmyValue(1);
-      myValueObject.myValue = myValue;
 
-      if(true)
+      if(tag==1)
       {
         const face = faces[0];
         const currentEyeStatus = detectBlinking(face);
@@ -299,6 +295,7 @@ function App() {
           } else if (currentTime - lastBlinkTime >= allowedTime) {
             if (!blinkAlertShown) {
               //要換
+              violationadd("駕駛閉眼");
               Alert.alert("警告", "您閉眼的時間過長，請保持警覺");
               setBlinkAlertShown(true);
             }
@@ -316,6 +313,8 @@ function App() {
           } else if (currentTime - lastLookTime >= allowedTime) {
             if (!lookAlertShown) {
               //要換
+              violationadd("駕駛東張西望");
+
               Alert.alert("警告", "您看向左右的時間過長，請保持警覺");
               setLookAlertShown(true);
             }
@@ -344,8 +343,6 @@ function App() {
         setYawningStatus(currentYawningStatus);
       }
     } else {
-      setmyValue(0);
-      myValueObject.myValue = myValue;
 
       resetCounts();
       setEyeStatus('');
@@ -378,7 +375,7 @@ function App() {
           {renderFacePoints(face)}
         </Svg>
       ))}
-      <View style={styles.speedContainer}>
+      {/* <View style={styles.speedContainer}>
         <Text style={styles.speedText}>
           {errorMsg
             ? errorMsg
@@ -386,8 +383,7 @@ function App() {
             ? `Speed: ${speed.toFixed(2)} km/h`
             : 'Calculating speed...'}
         </Text>
-        <Button title='test' onPress={()=>{console.log(myValue)}} />
-      </View>
+      </View> */}
     </Camera>
 
   );

@@ -1,22 +1,22 @@
 import React, { Component, useState } from 'react';
-import { Alert, Button, SafeAreaView, TouchableOpacity,Text, View ,Image} from "react-native";
+import { Alert, Button, SafeAreaView, TouchableOpacity,Text, View ,Image,Dimensions,} from "react-native";
 import { connect } from 'react-redux';
 import url from '../../url';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 import { StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import App from '../component/App';
-//播放音檔
-async function playSound() {
-  const soundObject = new Audio.Sound();
-  try {
-    await soundObject.loadAsync(require('../../audio/dog1a.mp3'));
-    await soundObject.playAsync();
-  } catch (error) {
-    console.log(error);
-  }
-}
+import { useEffect } from 'react';
+import { Camera } from 'expo-camera';
+import * as FaceDetector from 'expo-face-detector';
+import {Svg, Circle} from 'react-native-svg';
+import * as LocalAuthentication from 'expo-local-authentication';
+import * as Location from 'expo-location';
+import App from './App';
+
+
+
+
 class Driconnect extends Component{
 
 
@@ -36,6 +36,10 @@ class Driconnect extends Component{
       distrack:0,
       closeeye:0,
       tag:0,
+      width:0,
+      height:0,
+      top:"100%",
+      time:0,
     }
   
  
@@ -92,6 +96,7 @@ class Driconnect extends Component{
     recordadd=()=>{
       const time = new Date(`1970-01-01T08:00:00.000Z`);
       const starttime = new Date(this.state.datetime.getTime()+ time.getTime()-new Date(0).getTime());
+      this.setState({time:starttime})
       console.log(starttime);
       fetch(`http://${url}/recordadd`,{
             method:'POST',
@@ -120,30 +125,7 @@ class Driconnect extends Component{
           this.setState({ sec: this.state.sec+1 });
         }, 1000);
 
-        //搜尋資料庫是否有新的違規
-        this.interval =setInterval(()=>{
-          this.searchvio();
-          const difference = this.state.vionew.filter(item => !this.state.viocurrent.some(element => element.datetime === item.datetime));
-          console.log(this.state.drivecount);
-          console.log(difference)
-          if(difference.length===0){
-            
-            //良好駕駛加分            
-            this.setState({drivecount:this.state.drivecount+1});
-            if(this.state.drivecount==12){
-              if(this.state.score>95){
-                this.setState({drivecount:0, score:100});
-              }else{
-                this.setState({drivecount:0, score:this.state.score+5});
-              }
-            }
-          }else{
-            this.setState({drivecount:0,viocurrent:this.state.vionew,prescore:this.state.score});
-
-            this.eventcount(difference);
-
-          }
-        },2000);
+       
       };
     
 
@@ -173,48 +155,7 @@ class Driconnect extends Component{
           );
       };
 
-      //算這趟違規的次數&加扣分
-      eventcount=(data)=>{
-
-        const con1 = data.reduce((acc,item)=>{
-            if(item.Event==="打哈欠"){
-              this.setState({score:this.state.score-3, yawn:this.state.yawn+1});
-            
-            }
-        },0);
-
-        const con2 = data.reduce((acc,item)=>{
-            if(item.Event==="眨眼頻率過高"){
-              this.setState({score:this.state.score-4 , wink:this.state.wink+1});
-
-            }
-        },0);
-
-        const con3 =data.reduce((acc,item)=>{
-            if(item.Event==="駕駛東張西望"){
-              this.setState({score:this.state.score-3 , distrack:this.state.distrack+1});
-
-            }
-        },0);
-
-        const con4 =data.reduce((acc,item)=>{
-            if(item.Event==="駕駛閉眼"){
-              this.setState({score:this.state.score-20 , closeeye:this.state.closeeye+1});
-            }
-        },0);
-        
-        if(this.state.score<80 && this.state.prescore>80 ){
-          playSound();
-        }
-        if(this.state.score<60 && this.state.prescore>60){
-          playSound();
-        }
-        if(this.state.score<40 && this.state.prescore>40){
-          playSound();
-        }
-
-    }
-
+      
 
 
 
@@ -223,12 +164,24 @@ class Driconnect extends Component{
     
       
     render(){
-
         const formattedSec = new Date(this.state.sec * 1000).toISOString().substr(11, 8);
         return(
           <View style={styles.container}>
-            {/* <App Driver="John" license="ABC123" tag={1} /> */}
+            <LinearGradient
+            colors={['#1B232A', '#5EC5A0']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.topview}
+           >                
+                <View style={{flexDirection:"row",alignItems:"center",marginTop:"25%"}}>
+                    <Image source={require("../../image/user.png")} style={{height:30,width:30}}/>
+                    <Text style={styles.toptext}>開始駕駛</Text>
+                </View>
+                <Image style={styles.pic} source={require("../../image/rock.png")} resizeMode="stretch"/>
+            
+            </LinearGradient>
             <View style={styles.bottomview}>
+              
               <View style={{flexDirection:'row'}}>
               <Text style={{fontSize:32,fontWeight:"bold",color:"#DDDDDD",marginTop:"10%"}}>開始時間</Text>
               </View>
@@ -252,7 +205,28 @@ class Driconnect extends Component{
                 >
                     <Text style={{fontSize:20,color:"#FFFFFF",fontWeight:"bold"}}>{this.state.sid}</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                style={styles.button}
+                onPress={()=>{
+                  this.setState({width:"100%",height:"100%",top:"0%"})
+                }}
+                >
+                    <Text style={{fontSize:20,color:"#FFFFFF",fontWeight:"bold"}}>顯示鏡頭</Text>
+                </TouchableOpacity>
+                
             </View>
+
+            <View style={{width:this.state.width,height:this.state.height}}>
+                <App Driver={this.props.Driver} license={this.props.license} tag={this.state.tag} recordtime={this.state.time} />
+                <TouchableOpacity
+                style={styles.camerabutton}
+                onPress={()=>{
+                  this.setState({width:0,height:0,top:"100%"})
+                }}
+                >
+                    <Text style={{fontSize:20,color:"#FFFFFF",fontWeight:"bold"}}>返回</Text>
+                </TouchableOpacity>
+                </View>
           </View>
 
 
@@ -288,13 +262,11 @@ const styles = StyleSheet.create({
     alignItems:"center",
     flexDirection:"column",
     backgroundColor:"#1b232a",
-
   },
   toptext:{
-    fontSize:32,
+    fontSize:30,
     fontWeight:"bold",
     color:"#FFFFFF",
-    marginTop:"25%",
   },
   pic:{
     width:100,
@@ -309,6 +281,51 @@ const styles = StyleSheet.create({
     borderRadius:20,
     justifyContent:"center",
     alignItems:"center"
+  },
+  camerabutton:{
+    marginLeft:"28%",
+    width:180,
+    height:40,
+    backgroundColor:"#319073",
+    borderRadius:20,
+    justifyContent:"center",
+    alignItems:"center"
+  },
+  camera: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  faces: {
+    top:-300,
+    backgroundColor: '#ffffff',
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 16
+  },
+  faceDesc: {
+    top:0,
+    fontSize: 20
+  },
+  faceOverlay: {
+
+    position: 'absolute',
+    left: 0,
+    top: 0,
+  },
+  speedContainer: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 10,
+    padding: 10,
+  },
+  speedText: {
+    fontSize: 20,
   },
 })
 export default connect(mapStateToProps)(Driconnect)
