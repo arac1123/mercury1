@@ -1,6 +1,6 @@
 import React,{Component} from "react";
 import url from "../../url";
-import { StyleSheet, View ,Image,Text, Button } from "react-native";
+import { StyleSheet, View ,Image,Text, Button,FlatList,TouchableOpacity  } from "react-native";
 import { connect } from "react-redux";
 import { LinearGradient } from 'expo-linear-gradient';
 import { BarChart } from "react-native-chart-kit";
@@ -11,19 +11,26 @@ class Driveranalyze extends Component{
     state={
         vionetdata:[],
         recnetdata:[],
-        duration:null,
+        hour:null,
+        minute:null,
+        second:null,
         yawn:0,
         wink:0,
         distrack:0,
         closeeye:0,
-        viofre:[24],
-        warn:0,
         lastdrive:'nah',
+        name:[{name:"三天",day:3},
+              {name:"一周",day:7},
+              {name:"一個月",day:30},
+              {name:"一季",day:90}],
+        long:"一周",
+        searchday:7,
+        maxIndex:null,
     }
 
     //搜尋該駕駛這七天的違規情形
     searchvio=()=>{
-        fetch(`http://${url}/driverviocount?name=${this.props.driver}`)
+        fetch(`http://${url}/driverviocount?name=${this.props.driver}&day=${this.state.searchday}`)
         .then(response=>response.json())
         .then(response=>{
             this.setState({vionetdata:response}, () => {
@@ -33,7 +40,7 @@ class Driveranalyze extends Component{
     }
 
     searchrecord=()=>{
-        fetch(`http://${url}/driverrecord?name=${this.props.driver}`)
+        fetch(`http://${url}/driverrecord?name=${this.props.driver}&day=${this.state.searchday}`)
         .then(response=>response.json())
         .then(response=>{
             this.setState({recnetdata:response},()=>{
@@ -46,15 +53,16 @@ class Driveranalyze extends Component{
 
     //計算駕駛總時間
     countduration = () => {
-
         const totalMilliseconds = this.state.recnetdata.reduce((accumulator, currentValue) => {
             const timeParts = currentValue.Duration.split(":").map(part => parseInt(part));
             const milliseconds = (timeParts[0] * 60 * 60 * 1000) + (timeParts[1] * 60 * 1000) + (timeParts[2] * 1000);
             return accumulator + milliseconds;
-          }, 0);
-          
-          const totalDuration = new Date(totalMilliseconds).toISOString().substr(11, 8);
-          this.setState({ duration: totalDuration });
+        }, 0);
+        const seconds = (Math.floor((totalMilliseconds / 1000) % 60)).toString().padStart(2, '0');
+        const minutes = (Math.floor((totalMilliseconds / 1000 / 60) % 60)).toString().padStart(2, '0');
+        const hours = (Math.floor((totalMilliseconds / 1000 / 60 / 60) )).toString().padStart(2, '0');
+        this.setState({ hour:hours,minute:minutes,second:seconds});
+
         }
 
 
@@ -95,181 +103,30 @@ class Driveranalyze extends Component{
     }
 
     countviofrequency=()=>{
-        let i=[];
-        i[0] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="00"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[1]= this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="01"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[2] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="02"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[3] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="03"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[4] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="04"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[5] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="05"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[6] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="06"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[7] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="07"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[8] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="08"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[9] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="09"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[10] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="10"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[11] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="11"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[12] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="12"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[13] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="13"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[14] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="14"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[15] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="15"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[16] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="16"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[17] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="17"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[18] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="18"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[19] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="19"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[20] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="20"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[21] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="21"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[22] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="22"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
-        i[23] = this.state.vionetdata.reduce((acc,item)=>{
-            if(item.datetime.substring(11,13)==="23"){
-            return acc+1;
-            }else{
-                return acc;
-            }
-        },0);
+        const timeDiffs = this.state.vionetdata.map((item) => {
+            const startTime = new Date(item.datetime).getTime();
+            
+            const endTime = new Date(item.recordtime).getTime();
+            
+            const diff = endTime - startTime;
+            return diff;
+          });
+        const hourCounts = new Array(24).fill(0);
+        timeDiffs.forEach((diff) => {
+            console.log(diff)
+            const hour = diff/60/60/1000
+            console.log(hour)
+                        console.log("")
 
-        let max = Math.max(...i);
-        let index = i.indexOf(max);
-        this.setState({warn:index});
-        
+            hourCounts[hour]++;
 
+        });
+
+        const maxIndex = hourCounts.reduce((maxIndex, count, index, arr) => {
+            return count > arr[maxIndex] ? index : maxIndex;
+        }, 0);
+
+            this.setState({maxIndex:maxIndex})
     }
 
     componentDidMount(){
@@ -303,10 +160,31 @@ class Driveranalyze extends Component{
                             <Text style={styles.lictitle}>{this.props.driver}</Text>
                         </View>
                         <Text style={styles.record}>上次駕駛 : {this.state.recnetdata.length>1?this.state.lastdrive:"超過一周未開車"}</Text>
-                        <Text style={styles.record}>最近一周駕駛次數 : {this.state.recnetdata.length}</Text>
-                        <Text style={styles.record}>最近一周駕駛總時長 : {this.state.duration}</Text>
-                        <Text style={styles.record}>最近一周違規次數 : {this.state.vionetdata.length}</Text>
-                        <Text style={styles.conclude}>駕駛於{this.state.recnetdata.length>1?this.state.warn-8:"nah"}:00~{this.state.recnetdata.length>1?this.state.warn-7:"nah"}:00時段容易分心 </Text>
+                        <Text style={styles.record}>最近{this.state.long}駕駛次數 : {this.state.recnetdata.length}</Text>
+                        <Text style={styles.record}>最近{this.state.long}駕駛總時長 : {this.state.hour}:{this.state.minute}:{this.state.second} </Text>
+                        <Text style={styles.record}>最近{this.state.long}違規次數 : {this.state.vionetdata.length}</Text>
+                        <Text style={styles.conclude}>駕駛者於駕駛第{this.state.maxIndex}小時最容易分心 </Text>
+
+                        <FlatList
+                            data={this.state.name}
+                            showsVerticalScrollIndicator={false}
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
+                            ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+
+                            renderItem={({item})=>
+                                <TouchableOpacity
+                                style={styles.flatlist}
+                                onPress={()=>{this.setState({long:item.name,searchday:item.day},()=>{
+                                        this.searchvio();
+                                        this.searchrecord();
+                                    })}}
+                                >
+                                    <Text style={styles.time}>{item.name} </Text>
+
+
+                                </TouchableOpacity>}
+                            />
 
                         <View style={{justifyContent:"center",alignItems:"center"}}>
                             <BarChart       
@@ -351,7 +229,7 @@ class Driveranalyze extends Component{
                             }}
                                 
                             />
-                            </View>
+                        </View>
 
 
                 </View>
@@ -412,7 +290,21 @@ const styles =StyleSheet.create({
         marginLeft:"8%",
         fontSize:22,
         fontWeight:"bold"
-    }
+    },
+    flatlist:{
+        width:150,
+        height:30,
+        backgroundColor:"#319073",
+        justifyContent:"center",
+        alignItems:"center",
+        borderRadius:20,
+        marginTop:"4%",
+    },
+    time:{
+        fontSize:20,
+        color:"#BBBBBB",
+        fontWeight:"bold"
+    },
     
 })
 

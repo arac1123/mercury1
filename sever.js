@@ -242,7 +242,8 @@ app.get(`/driverselect`,(req,res)=>{
 //搜尋該駕駛的最近一周駕駛紀錄
 app.get('/driverrecord',(req,res)=>{
     const name = req.query.name
-    connection.query(`select * FROM record WHERE rTime >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND Driver="${name}"`,function(error,rows,fields){
+    const day =req.query.day
+    connection.query(`select * FROM record WHERE rTime >= DATE_SUB(NOW(), INTERVAL ${day} DAY) AND Driver="${name}"`,function(error,rows,fields){
         if(error)
         console.log(error);
         else{
@@ -257,7 +258,7 @@ app.get('/driverrecord',(req,res)=>{
                   Driver:row.Driver,
                 };
               });
-              console.log(rows);
+            //   console.log(rows);
               res.json(data);
 
         }
@@ -268,14 +269,17 @@ app.get('/driverrecord',(req,res)=>{
 //搜尋駕駛7天內的所有違規事項
 app.get('/driverviocount',(req,res)=>{
     const name = req.query.name
-    connection.query(`select * from violation INNER JOIN record where record.rTime >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND record.Driver="${name}" and violation.rTime=record.rTime;`,function(error, rows, fields) {
+    const day = req.query.day
+    connection.query(`select * from violation INNER JOIN record where record.rTime >= DATE_SUB(NOW(), INTERVAL ${day} DAY) AND record.Driver="${name}" and violation.rTime=record.rTime;`,function(error, rows, fields) {
         if (error) {
           console.log(error);
           res.status(500).send('Internal Server Error');
         } else {
           const data = rows.map(row => {
+            const recordtime =moment.utc(row.rTime).utcOffset(8 * 60);
             const datetime = moment.utc(row.vTime).utcOffset(8 * 60);
             return {
+                recordtime:recordtime.format(),
                 datetime:datetime.format(),
                 date: datetime.format('YYYY-MM-DD'),
               time: datetime.format('HH:mm:ss'),

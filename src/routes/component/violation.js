@@ -32,10 +32,12 @@ class Violation extends Component{
         flat:false,
         name:["打哈欠","眨眼頻率過高","駕駛東張西望","駕駛閉眼"],
         count:[],
+        
     }
 
     //搜尋sql
     searchvio = () => {
+        console.log()
         fetch(`http://${url}/violation?record=${this.props.record.datetime}&license=${this.props.license}`)
         .then(response => response.json())
           .then(netdata => {

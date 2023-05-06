@@ -243,7 +243,7 @@ function App(props) {
     }
   };
 
-
+  //新增違規事項
   violationadd=(Event)=>{
     const time = new Date(`1970-01-01T08:00:00.000Z`);
     const ttime = new Date();
